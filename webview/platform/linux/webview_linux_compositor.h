@@ -25,6 +25,7 @@ public:
 	Compositor(const QByteArray &socketName = {});
 	~Compositor();
 
+	void destroyClients();
 	void setWidget(QQuickWidget *widget);
 
 private:
@@ -46,6 +47,7 @@ class Compositor : public QObject {
 public:
 	Compositor(const QByteArray &socketName = {}) {}
 	QString socketName() { return {}; }
+	void destroyClients() {}
 };
 
 } // namespace Webview

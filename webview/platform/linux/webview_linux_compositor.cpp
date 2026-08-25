@@ -294,8 +294,15 @@ Compositor::Compositor(const QByteArray &socketName)
 }
 
 Compositor::~Compositor() {
+	destroyClients();
 	for (const auto output : outputs()) {
 		delete output;
+	}
+}
+
+void Compositor::destroyClients() {
+	for (const auto client : clients()) {
+		destroyClient(client);
 	}
 }
 

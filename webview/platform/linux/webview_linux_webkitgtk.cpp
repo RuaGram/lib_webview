@@ -2781,6 +2781,9 @@ void Instance::stopProcess() {
 	if (_dbusServer) {
 		_dbusServer.stop();
 	}
+	if (_compositor) {
+		_compositor->destroyClients();
+	}
 	if (_serviceProcess) {
 		_serviceProcess.send_signal(SIGTERM);
 	}
