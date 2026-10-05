@@ -28,6 +28,8 @@ ResolveResult Resolve(Platform platform, WindowMode mode) {
 		&& LOAD_LIBRARY_SYMBOL(lib, gtk_window_set_title)
 		&& LOAD_LIBRARY_SYMBOL(lib, gtk_window_set_decorated)
 		&& LOAD_LIBRARY_SYMBOL(lib, gtk_window_set_default_size)
+		&& LOAD_LIBRARY_SYMBOL(lib, gtk_window_set_startup_id)
+		&& LOAD_LIBRARY_SYMBOL(lib, gtk_window_present)
 		&& LOAD_LIBRARY_SYMBOL(lib, gtk_scrolled_window_new)
 		&& (LOAD_LIBRARY_SYMBOL(lib, gtk_window_destroy)
 			|| LOAD_LIBRARY_SYMBOL(lib, gtk_widget_destroy))
@@ -54,6 +56,19 @@ ResolveResult Resolve(Platform platform, WindowMode mode) {
 			|| (LOAD_LIBRARY_SYMBOL(lib, gtk_plug_new)
 				&& LOAD_LIBRARY_SYMBOL(lib, gtk_plug_get_id)
 				&& LOAD_LIBRARY_SYMBOL(lib, gtk_plug_get_type)))
+		&& ((LOAD_LIBRARY_SYMBOL(lib, gtk_event_controller_get_current_event_time)
+				&& LOAD_LIBRARY_SYMBOL(lib, gtk_event_controller_set_propagation_phase)
+				&& LOAD_LIBRARY_SYMBOL(lib, gtk_event_controller_reset)
+				&& LOAD_LIBRARY_SYMBOL(lib, gtk_gesture_set_state)
+				&& LOAD_LIBRARY_SYMBOL(lib, gtk_gesture_get_device))
+			|| (LOAD_LIBRARY_SYMBOL(lib, gdk_window_begin_move_drag_for_device)
+				&& LOAD_LIBRARY_SYMBOL(lib, gdk_window_begin_resize_drag_for_device)
+				&& LOAD_LIBRARY_SYMBOL(lib, gdk_event_get_event_type)
+				&& LOAD_LIBRARY_SYMBOL(lib, gdk_event_get_button)
+				&& LOAD_LIBRARY_SYMBOL(lib, gdk_event_get_coords)
+				&& LOAD_LIBRARY_SYMBOL(lib, gdk_event_get_root_coords)
+				&& LOAD_LIBRARY_SYMBOL(lib, gdk_event_get_device)
+				&& LOAD_LIBRARY_SYMBOL(lib, gdk_event_get_time)))
 		&& LOAD_LIBRARY_SYMBOL(lib, jsc_value_to_string)
 		&& LOAD_LIBRARY_SYMBOL(lib, webkit_navigation_policy_decision_get_type)
 		&& LOAD_LIBRARY_SYMBOL(lib, webkit_navigation_policy_decision_get_navigation_action)
@@ -99,7 +114,6 @@ ResolveResult Resolve(Platform platform, WindowMode mode) {
 	if (!result) {
 		return ResolveResult::NoLibrary;
 	}
-	LOAD_LIBRARY_SYMBOL(lib, gtk_widget_set_app_paintable);
 	LOAD_LIBRARY_SYMBOL(lib, gtk_widget_show_all);
 	LOAD_LIBRARY_SYMBOL(lib, gtk_widget_get_window);
 	LOAD_LIBRARY_SYMBOL(lib, gtk_widget_get_screen);
@@ -144,10 +158,9 @@ ResolveResult Resolve(Platform platform, WindowMode mode) {
 	LOAD_LIBRARY_SYMBOL(lib, gtk_event_controller_key_new);
 	LOAD_LIBRARY_SYMBOL(lib, gtk_event_controller_get_type);
 	LOAD_LIBRARY_SYMBOL(lib, gtk_widget_add_controller);
-	LOAD_LIBRARY_SYMBOL(lib, gtk_window_begin_move_drag);
-	LOAD_LIBRARY_SYMBOL(lib, gtk_window_begin_resize_drag);
 	LOAD_LIBRARY_SYMBOL(lib, gtk_window_fullscreen);
 	LOAD_LIBRARY_SYMBOL(lib, gtk_window_unfullscreen);
+	LOAD_LIBRARY_SYMBOL(lib, gtk_window_is_fullscreen);
 	LOAD_LIBRARY_SYMBOL(lib, gtk_native_get_surface);
 	LOAD_LIBRARY_SYMBOL(lib, gtk_native_get_type);
 	LOAD_LIBRARY_SYMBOL(lib, gdk_toplevel_get_type);
@@ -159,7 +172,9 @@ ResolveResult Resolve(Platform platform, WindowMode mode) {
 	LOAD_LIBRARY_SYMBOL(lib, gdk_wayland_window_get_type);
 	LOAD_LIBRARY_SYMBOL(lib, gdk_x11_surface_get_xid);
 	LOAD_LIBRARY_SYMBOL(lib, gdk_x11_window_get_xid);
+	LOAD_LIBRARY_SYMBOL(lib, gdk_x11_get_server_time);
 	LOAD_LIBRARY_SYMBOL(lib, gdk_window_set_shadow_width);
+	LOAD_LIBRARY_SYMBOL(lib, gdk_window_get_state);
 	LOAD_LIBRARY_SYMBOL(lib, gdk_toplevel_begin_move);
 	LOAD_LIBRARY_SYMBOL(lib, gdk_toplevel_begin_resize);
 	LOAD_LIBRARY_SYMBOL(lib, gdk_toplevel_size_set_shadow_width);

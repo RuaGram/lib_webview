@@ -19,6 +19,9 @@
 			<arg type='b' name='success' direction='in'/>
 		</method>
 		<method name='ExternalWindowClosed'/>
+		<method name='FullscreenChanged'>
+			<arg type='b' name='fullscreen' direction='in'/>
+		</method>
 		<method name='ScriptDialog'>
 			<arg type='i' name='type' direction='in'/>
 			<arg type='s' name='text' direction='in'/>
@@ -85,6 +88,9 @@
 		</method>
 		<method name='Eval'>
 			<arg type='ay' name='js' direction='in'/>
+		</method>
+		<method name='Focus'>
+			<arg type='s' name='token' direction='in'/>
 		</method>
 		<method name='SetOpaqueBg'>
 			<arg type='i' name='r' direction='in'/>

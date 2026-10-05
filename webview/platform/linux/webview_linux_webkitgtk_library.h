@@ -11,6 +11,7 @@
 #include <gio/gio.h>
 
 #define GDK_CURRENT_TIME 0L 
+#define GDK_BUTTON_PRIMARY 1
 
 #define GTK_TYPE_CONTAINER (gtk_container_get_type ())
 #define GTK_CONTAINER(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), GTK_TYPE_CONTAINER, GtkContainer))
@@ -172,6 +173,28 @@ typedef enum {
 	GTK_SHADOW_ETCHED_OUT,
 } GtkShadowType;
 
+// GTK 3 values, gdk_event_get_event_type is only loaded there.
+typedef enum {
+	GDK_TOUCH_BEGIN = 37,
+} GdkEventType;
+
+typedef enum {
+	GDK_WINDOW_STATE_FULLSCREEN = 1 << 4,
+} GdkWindowState;
+
+typedef enum {
+	GTK_PHASE_NONE,
+	GTK_PHASE_CAPTURE,
+	GTK_PHASE_BUBBLE,
+	GTK_PHASE_TARGET,
+} GtkPropagationPhase;
+
+typedef enum {
+	GTK_EVENT_SEQUENCE_NONE,
+	GTK_EVENT_SEQUENCE_CLAIMED,
+	GTK_EVENT_SEQUENCE_DENIED,
+} GtkEventSequenceState;
+
 typedef enum {
 	WEBKIT_WEB_PROCESS_CRASHED,
 	WEBKIT_WEB_PROCESS_EXCEEDED_MEMORY_LIMIT,
@@ -243,8 +266,11 @@ inline void (*gtk_window_set_default_size)(
 	GtkWindow *window,
 	gint width,
 	gint height);
+inline void (*gtk_window_set_startup_id)(GtkWindow *window, const char *startup_id);
+inline void (*gtk_window_present)(GtkWindow *window);
 inline void (*gtk_window_fullscreen)(GtkWindow *window);
 inline void (*gtk_window_unfullscreen)(GtkWindow *window);
+inline gboolean (*gtk_window_is_fullscreen)(GtkWindow *window);
 inline GtkWidget *(*gtk_scrolled_window_new)(
 	GtkAdjustment *hadjustment,
 	GtkAdjustment *vadjustment);
@@ -259,9 +285,6 @@ inline void (*gtk_widget_set_size_request)(
 	gint width,
 	gint height);
 inline void (*gtk_widget_set_visible)(GtkWidget *widget, gboolean visible);
-inline void (*gtk_widget_set_app_paintable)(
-	GtkWidget *widget,
-	gboolean app_paintable);
 inline void (*gtk_widget_show_all)(GtkWidget *widget);
 inline GType (*gtk_window_get_type)(void);
 inline GdkDisplay *(*gtk_widget_get_display)(GtkWidget *widget);
@@ -308,15 +331,41 @@ inline GType (*gtk_event_controller_get_type)(void);
 inline void (*gtk_widget_add_controller)(
 	GtkWidget *widget,
 	GtkEventController *controller);
-inline void (*gtk_window_begin_move_drag)(
-	GtkWindow *window,
+inline void (*gtk_event_controller_set_propagation_phase)(
+	GtkEventController *controller,
+	GtkPropagationPhase phase);
+inline guint32 (*gtk_event_controller_get_current_event_time)(
+	GtkEventController *controller);
+inline void (*gtk_event_controller_reset)(GtkEventController *controller);
+inline gboolean (*gtk_gesture_set_state)(
+	GtkGesture *gesture,
+	GtkEventSequenceState state);
+inline GdkDevice *(*gtk_gesture_get_device)(GtkGesture *gesture);
+inline guint32 (*gdk_event_get_time)(const GdkEvent *event);
+inline GdkEventType (*gdk_event_get_event_type)(const GdkEvent *event);
+inline GdkDevice *(*gdk_event_get_device)(const GdkEvent *event);
+inline gboolean (*gdk_event_get_coords)(
+	const GdkEvent *event,
+	gdouble *x_win,
+	gdouble *y_win);
+inline gboolean (*gdk_event_get_root_coords)(
+	const GdkEvent *event,
+	gdouble *x_root,
+	gdouble *y_root);
+inline gboolean (*gdk_event_get_button)(
+	const GdkEvent *event,
+	guint *button);
+inline void (*gdk_window_begin_move_drag_for_device)(
+	GdkWindow *window,
+	GdkDevice *device,
 	gint button,
 	gint root_x,
 	gint root_y,
 	guint32 timestamp);
-inline void (*gtk_window_begin_resize_drag)(
-	GtkWindow *window,
+inline void (*gdk_window_begin_resize_drag_for_device)(
+	GdkWindow *window,
 	GdkWindowEdge edge,
+	GdkDevice *device,
 	gint button,
 	gint root_x,
 	gint root_y,
@@ -332,12 +381,14 @@ inline GType (*gdk_wayland_toplevel_get_type)(void);
 inline GType (*gdk_wayland_window_get_type)(void);
 inline unsigned long (*gdk_x11_surface_get_xid)(GdkSurface *surface);
 inline unsigned long (*gdk_x11_window_get_xid)(GdkWindow *window);
+inline guint32 (*gdk_x11_get_server_time)(void *window); // GdkWindow on GTK3, GdkSurface on GTK4
 inline void (*gdk_window_set_shadow_width)(
 	GdkWindow *window,
 	gint left,
 	gint right,
 	gint top,
 	gint bottom);
+inline GdkWindowState (*gdk_window_get_state)(GdkWindow *window);
 inline void (*gdk_toplevel_begin_move)(
 	GdkToplevel *toplevel,
 	GdkDevice *device,
