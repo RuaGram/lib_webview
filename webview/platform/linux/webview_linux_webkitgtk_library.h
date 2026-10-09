@@ -29,10 +29,6 @@
 #define GTK_TYPE_EVENT_CONTROLLER (gtk_event_controller_get_type ())
 #define GTK_EVENT_CONTROLLER(o) (G_TYPE_CHECK_INSTANCE_CAST ((o), GTK_TYPE_EVENT_CONTROLLER, GtkEventController))
 
-#define GTK_TYPE_PLUG (gtk_plug_get_type ())
-#define GTK_PLUG(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), GTK_TYPE_PLUG, GtkPlug))
-#define GTK_IS_PLUG(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GTK_TYPE_PLUG))
-
 #define GTK_TYPE_STYLE_PROVIDER (gtk_style_provider_get_type ())
 #define GTK_STYLE_PROVIDER(o) (G_TYPE_CHECK_INSTANCE_CAST ((o), GTK_TYPE_STYLE_PROVIDER, GtkStyleProvider))
 #define GTK_STYLE_PROVIDER_PRIORITY_APPLICATION 600
@@ -40,12 +36,6 @@
 #define GDK_TYPE_TOPLEVEL (gdk_toplevel_get_type ())
 #define GDK_TOPLEVEL(object) (G_TYPE_CHECK_INSTANCE_CAST ((object), GDK_TYPE_TOPLEVEL, GdkToplevel))
 #define GDK_IS_TOPLEVEL(object) (G_TYPE_CHECK_INSTANCE_TYPE ((object), GDK_TYPE_TOPLEVEL))
-
-#define GDK_TYPE_X11_DISPLAY (gdk_x11_display_get_type ())
-#define GDK_IS_X11_DISPLAY(object) (G_TYPE_CHECK_INSTANCE_TYPE ((object), GDK_TYPE_X11_DISPLAY))
-
-#define GDK_TYPE_X11_SCREEN (gdk_x11_screen_get_type ())
-#define GDK_IS_X11_SCREEN(object) (G_TYPE_CHECK_INSTANCE_TYPE ((object), GDK_TYPE_X11_SCREEN))
 
 #define GDK_TYPE_X11_SURFACE (gdk_x11_surface_get_type ())
 #define GDK_IS_X11_SURFACE(object) (G_TYPE_CHECK_INSTANCE_TYPE ((object), GDK_TYPE_X11_SURFACE))
@@ -72,6 +62,13 @@
 #define WEBKIT_TYPE_CLIPBOARD_PERMISSION_REQUEST (webkit_clipboard_permission_request_get_type())
 #define WEBKIT_IS_CLIPBOARD_PERMISSION_REQUEST(obj) (G_TYPE_CHECK_INSTANCE_TYPE((obj), WEBKIT_TYPE_CLIPBOARD_PERMISSION_REQUEST))
 
+#define WEBKIT_TYPE_GEOLOCATION_PERMISSION_REQUEST (webkit_geolocation_permission_request_get_type())
+#define WEBKIT_IS_GEOLOCATION_PERMISSION_REQUEST(obj) (G_TYPE_CHECK_INSTANCE_TYPE((obj), WEBKIT_TYPE_GEOLOCATION_PERMISSION_REQUEST))
+
+#define WEBKIT_TYPE_USER_MEDIA_PERMISSION_REQUEST (webkit_user_media_permission_request_get_type())
+#define WEBKIT_USER_MEDIA_PERMISSION_REQUEST(obj) (G_TYPE_CHECK_INSTANCE_CAST((obj), WEBKIT_TYPE_USER_MEDIA_PERMISSION_REQUEST, WebKitUserMediaPermissionRequest))
+#define WEBKIT_IS_USER_MEDIA_PERMISSION_REQUEST(obj) (G_TYPE_CHECK_INSTANCE_TYPE((obj), WEBKIT_TYPE_USER_MEDIA_PERMISSION_REQUEST))
+
 struct _GdkRGBA {
 	float red;
 	float green;
@@ -86,13 +83,12 @@ typedef struct _GdkRGBA GdkRGBA;
 typedef struct _GdkSurface GdkSurface;
 typedef struct _GdkVisual GdkVisual;
 typedef struct _GdkWindow GdkWindow;
+typedef struct _GtkApplication GtkApplication;
 typedef struct _GtkContainer GtkContainer;
 typedef struct _GtkNative GtkNative;
 typedef struct _GtkSettings GtkSettings;
 typedef struct _GtkWidget GtkWidget;
 typedef struct _GtkWindow GtkWindow;
-typedef struct _GtkPlug GtkPlug;
-typedef struct _GtkAdjustment GtkAdjustment;
 typedef struct _GtkStyleContext GtkStyleContext;
 typedef struct _GtkStyleProvider GtkStyleProvider;
 typedef struct _GtkCssProvider GtkCssProvider;
@@ -137,6 +133,7 @@ typedef struct _WebKitDownload WebKitDownload;
 typedef struct _WebKitAuthenticationRequest WebKitAuthenticationRequest;
 typedef struct _WebKitCredential WebKitCredential;
 typedef struct _WebKitPermissionRequest WebKitPermissionRequest;
+typedef struct _WebKitUserMediaPermissionRequest WebKitUserMediaPermissionRequest;
 
 typedef enum {
 	GTK_WINDOW_TOPLEVEL,
@@ -165,15 +162,7 @@ typedef enum {
 	GDK_SURFACE_EDGE_SOUTH_EAST,
 } GdkSurfaceEdge;
 
-typedef enum {
-	GTK_SHADOW_NONE,
-	GTK_SHADOW_IN,
-	GTK_SHADOW_OUT,
-	GTK_SHADOW_ETCHED_IN,
-	GTK_SHADOW_ETCHED_OUT,
-} GtkShadowType;
-
-// GTK 3 values, gdk_event_get_event_type is only loaded there.
+// GTK 3 values, only used there.
 typedef enum {
 	GDK_TOUCH_BEGIN = 37,
 } GdkEventType;
@@ -247,6 +236,9 @@ namespace Webview::WebKitGTK::Library {
 
 inline gboolean (*gtk_init_check)(int *argc, char ***argv);
 inline void (*gdk_set_allowed_backends)(const gchar *backends);
+inline GtkApplication *(*gtk_application_new)(
+	const gchar *application_id,
+	GApplicationFlags flags);
 inline GType (*gtk_widget_get_type)(void);
 inline GType (*gtk_container_get_type)(void);
 inline void (*gtk_container_add)(
@@ -256,12 +248,19 @@ inline void (*gtk_window_set_child)(
 	GtkWindow *window,
 	GtkWidget *child);
 inline GtkWidget *(*gtk_window_new)(GtkWindowType type);
+inline void (*gtk_window_set_application)(
+	GtkWindow *window,
+	GtkApplication *application);
 inline void (*gtk_window_set_title)(
 	GtkWindow *window,
 	const gchar *title);
 inline void (*gtk_window_set_decorated)(
 	GtkWindow *window,
 	gboolean setting);
+inline void (*gtk_window_get_default_size)(
+	GtkWindow *window,
+	gint *width,
+	gint *height);
 inline void (*gtk_window_set_default_size)(
 	GtkWindow *window,
 	gint width,
@@ -271,29 +270,29 @@ inline void (*gtk_window_present)(GtkWindow *window);
 inline void (*gtk_window_fullscreen)(GtkWindow *window);
 inline void (*gtk_window_unfullscreen)(GtkWindow *window);
 inline gboolean (*gtk_window_is_fullscreen)(GtkWindow *window);
-inline GtkWidget *(*gtk_scrolled_window_new)(
-	GtkAdjustment *hadjustment,
-	GtkAdjustment *vadjustment);
-inline void (*gtk_scrolled_window_set_shadow_type)(
-	GtkWidget *scrolled_window,
-	GtkShadowType type);
 inline GtkWidget *(*gtk_graphics_offload_new)(GtkWidget *child);
 inline void (*gtk_window_destroy)(GtkWindow *widget);
 inline void (*gtk_widget_destroy)(GtkWidget *widget);
-inline void (*gtk_widget_set_size_request)(
-	GtkWidget *window,
+inline void (*gtk_window_resize)(
+	GtkWindow *window,
 	gint width,
 	gint height);
+inline void (*gtk_widget_realize)(GtkWidget *widget);
 inline void (*gtk_widget_set_visible)(GtkWidget *widget, gboolean visible);
+inline void (*gtk_widget_set_sensitive)(GtkWidget *widget, gboolean sensitive);
+inline void (*gtk_widget_set_can_target)(
+	GtkWidget *widget,
+	gboolean can_target);
+inline void (*gtk_widget_grab_focus)(GtkWidget *widget);
 inline void (*gtk_widget_show_all)(GtkWidget *widget);
 inline GType (*gtk_window_get_type)(void);
 inline GdkDisplay *(*gtk_widget_get_display)(GtkWidget *widget);
+inline void (*gdk_display_sync)(GdkDisplay *display);
 inline GdkWindow *(*gtk_widget_get_window)(GtkWidget *widget);
 inline GdkScreen *(*gtk_widget_get_screen)(GtkWidget *widget);
 inline void (*gtk_widget_set_visual)(
 	GtkWidget *widget,
 	GdkVisual *visual);
-inline gint (*gtk_widget_get_scale_factor)(GtkWidget *widget);
 inline void (*gtk_widget_queue_resize)(GtkWidget *widget);
 inline GtkSettings *(*gtk_settings_get_default)(void);
 inline gdouble (*gdk_screen_get_resolution)(GdkScreen *screen);
@@ -373,15 +372,34 @@ inline void (*gdk_window_begin_resize_drag_for_device)(
 inline GdkSurface *(*gtk_native_get_surface)(GtkNative *self);
 inline GType (*gtk_native_get_type)(void);
 inline GType (*gdk_toplevel_get_type)(void);
-inline GType (*gdk_x11_display_get_type)(void);
-inline GType (*gdk_x11_screen_get_type)(void);
 inline GType (*gdk_x11_surface_get_type)(void);
 inline GType (*gdk_x11_window_get_type)(void);
 inline GType (*gdk_wayland_toplevel_get_type)(void);
 inline GType (*gdk_wayland_window_get_type)(void);
+// returns Window that is a typedef to unsigned long,
+// but we avoid to include Xlib.h here
 inline unsigned long (*gdk_x11_surface_get_xid)(GdkSurface *surface);
 inline unsigned long (*gdk_x11_window_get_xid)(GdkWindow *window);
-inline guint32 (*gdk_x11_get_server_time)(void *window); // GdkWindow on GTK3, GdkSurface on GTK4
+// takes and returns Display, but we avoid to include Xlib.h here
+inline void *(*gdk_x11_display_get_xdisplay)(GdkDisplay *display);
+inline int (*XChangeWindowAttributes)(
+	void *display,
+	unsigned long window,
+	unsigned long valuemask,
+	void *attributes);
+inline int (*XSetInputFocus)(
+	void *display,
+	unsigned long focus,
+	int revertTo,
+	unsigned long time);
+inline void (*gdk_x11_surface_set_frame_sync_enabled)(
+	GdkSurface *surface,
+	gboolean frame_sync_enabled);
+inline void (*gdk_x11_window_set_frame_sync_enabled)(
+	GdkWindow *window,
+	gboolean frame_sync_enabled);
+// GdkWindow on GTK3, GdkSurface on GTK4
+inline guint32 (*gdk_x11_get_server_time)(void *window);
 inline void (*gdk_window_set_shadow_width)(
 	GdkWindow *window,
 	gint left,
@@ -404,6 +422,14 @@ inline void (*gdk_toplevel_begin_resize)(
 	double x,
 	double y,
 	guint32 timestamp);
+inline void (*gdk_toplevel_size_get_bounds)(
+	GdkToplevelSize *size,
+	int *bounds_width,
+	int *bounds_height);
+inline void (*gdk_toplevel_size_set_size)(
+	GdkToplevelSize *size,
+	int width,
+	int height);
 inline void (*gdk_toplevel_size_set_shadow_width)(
 	GdkToplevelSize *size,
 	int left,
@@ -415,20 +441,16 @@ inline gboolean (*gdk_wayland_toplevel_export_handle)(
 	GdkWaylandToplevelExported callback,
 	gpointer user_data,
 	GDestroyNotify destroy_func);
-inline void (*gdk_wayland_toplevel_drop_exported_handle)(
-	GdkToplevel *toplevel,
-	const char *handle);
-inline void (*gdk_wayland_toplevel_unexport_handle)(
-	GdkToplevel *toplevel);
 inline gboolean (*gdk_wayland_window_export_handle)(
 	GdkWindow *window,
 	GdkWaylandWindowExported callback,
 	gpointer user_data,
 	GDestroyNotify destroy_func);
-inline void (*gdk_wayland_window_unexport_handle)(GdkWindow *window);
 inline void (*gdk_wayland_window_announce_csd)(GdkWindow *window);
 inline gint (*gdk_surface_get_width)(GdkSurface *surface);
 inline gint (*gdk_surface_get_height)(GdkSurface *surface);
+inline int (*gdk_window_get_width)(GdkWindow *window);
+inline int (*gdk_window_get_height)(GdkWindow *window);
 inline void (*gtk_window_get_size)(
 	GtkWindow *window,
 	gint *width,
@@ -450,12 +472,6 @@ inline void (*gtk_uri_launcher_launch)(
 	GAsyncReadyCallback callback,
 	gpointer user_data);
 
-// returns Window that is a typedef to unsigned long,
-// but we avoid to include Xlib.h here
-inline GtkWidget *(*gtk_plug_new)(unsigned long socket_id);
-inline unsigned long (*gtk_plug_get_id)(GtkPlug *plug);
-inline GType (*gtk_plug_get_type)(void);
-
 inline char *(*jsc_value_to_string)(JSCValue *value);
 inline JSCValue *(*webkit_javascript_result_get_js_value)(
 	WebKitJavascriptResult *js_result);
@@ -475,6 +491,9 @@ inline gboolean (*webkit_response_policy_decision_is_main_frame_main_resource)(
 inline const gchar *(*webkit_uri_response_get_mime_type)(
 	WebKitURIResponse *response);
 
+inline WebKitScriptDialog *(*webkit_script_dialog_ref)(
+	WebKitScriptDialog *dialog);
+inline void (*webkit_script_dialog_unref)(WebKitScriptDialog *dialog);
 inline WebKitScriptDialogType (*webkit_script_dialog_get_dialog_type)(
 	WebKitScriptDialog *dialog);
 inline const gchar *(*webkit_script_dialog_get_message)(
@@ -490,8 +509,6 @@ inline void (*webkit_script_dialog_prompt_set_text)(
 
 inline GtkWidget *(*webkit_web_view_new_with_context)(WebKitWebContext *context);
 inline GType (*webkit_web_view_get_type)(void);
-inline gboolean (*webkit_web_view_get_is_web_process_responsive)(
-	WebKitWebView *web_view);
 inline WebKitUserContentManager *(*webkit_web_view_get_user_content_manager)(
 	WebKitWebView *web_view);
 inline const gchar *(*webkit_web_view_get_default_content_security_policy)(
@@ -554,7 +571,6 @@ inline void (*webkit_settings_set_javascript_can_access_clipboard)(
 inline void (*webkit_settings_set_javascript_can_open_windows_automatically)(
 	WebKitSettings *settings,
 	gboolean enabled);
-inline gboolean (*webkit_web_view_is_loading)(WebKitWebView *web_view);
 inline void (*webkit_web_view_load_uri)(
 	WebKitWebView *web_view,
 	const gchar *uri);
@@ -633,8 +649,16 @@ inline WebKitCredential *(*webkit_credential_new)(
 	WebKitCredentialPersistence persistence);
 inline void (*webkit_credential_free)(WebKitCredential *credential);
 inline GType (*webkit_clipboard_permission_request_get_type)(void);
+inline GType (*webkit_geolocation_permission_request_get_type)(void);
+inline void (*webkit_permission_request_allow)(
+	WebKitPermissionRequest *request);
 inline void (*webkit_permission_request_deny)(
 	WebKitPermissionRequest *request);
+inline GType (*webkit_user_media_permission_request_get_type)(void);
+inline gboolean (*webkit_user_media_permission_is_for_audio_device)(
+	WebKitUserMediaPermissionRequest *request);
+inline gboolean (*webkit_user_media_permission_is_for_video_device)(
+	WebKitUserMediaPermissionRequest *request);
 
 enum class ResolveResult {
 	Success,
@@ -649,8 +673,6 @@ enum class Platform {
 	X11,
 };
 
-[[nodiscard]] ResolveResult Resolve(
-	Platform platform,
-	WindowMode mode);
+[[nodiscard]] ResolveResult Resolve(Platform platform);
 
 } // namespace Webview::WebKitGTK::Library
